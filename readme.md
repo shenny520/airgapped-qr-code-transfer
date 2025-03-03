@@ -7,11 +7,11 @@ Airgapped QR Code Transfer is a simple web-based tool to transfer data between d
 ## Live Online Demo
 
 1. **Receiver Setup:**
-   - Open <a href="https://airgapped-qr-code-transfer.mohanram.co.in/scanner" target="_blank">scanner.html</a> in the receiver's browser.
+   - Open <a href="scanner.html" target="_blank">scanner.html</a> in the receiver's browser.
    - Allow access to the camera for scanning.
 
 2. **Sender Setup:**
-   - Open <a href="https://airgapped-qr-code-transfer.mohanram.co.in/generator" target="_blank">generator.html</a> in the sender's browser.
+   - Open <a href="generator.html" target="_blank">generator.html</a> in the sender's browser.
    - Upload the file that needs to be transferred.
 
 3. **Transfer Process:**
