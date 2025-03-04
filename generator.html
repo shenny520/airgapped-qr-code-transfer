@@ -21,20 +21,29 @@
             type="file"
           />
         </div>
-        <button
-          v-if="!is_transferring"
-          v-on:click="start_transfer"
-          class="mb-6 p-1 border-2 border-gray-500"
-        >
-          Start Transfer
-        </button>
-        <button
-          v-else
-          v-on:click="stop_transfer"
-          class="mb-6 p-1 border-2 border-gray-500"
-        >
-          Stop Transfer
-        </button>
+        <div>
+          Chunks:
+          <input
+            style="border: solid 1px #000; margin-right: 10px"
+            type="text"
+            placeholder="1,2,3"
+            id="chunks"
+          />
+          <button
+            v-if="!is_transferring"
+            v-on:click="start_transfer"
+            class="mb-6 p-1 border-2 border-gray-500"
+          >
+            Start Transfer
+          </button>
+          <button
+            v-else
+            v-on:click="stop_transfer"
+            class="mb-6 p-1 border-2 border-gray-500"
+          >
+            Stop Transfer
+          </button>
+        </div>
         <div id="qrcode" class=""></div>
       </div>
     </div>
@@ -68,24 +77,38 @@
 
           const start_transfer = async () => {
             let file_input = document.getElementById("file_input");
-            is_transferring.value = true;
             let file = file_input.files[0];
+            if (!file) {
+              user_message.value = "Please choose a file to transfer";
+              return;
+            }
+            is_transferring.value = true;
+            let chunks_string = document.getElementById("chunks").value.trim();
             let data_chunks = [];
             let data_array = pako.gzip(await file.arrayBuffer(), { level: 9 });
             let total_chunks = Math.ceil(data_array.length / chunk_size);
+
+            let chunks = chunks_string?chunks_string.split(",").map(Number):null;
             let file_metadata = { name: file.name, chunks: total_chunks };
             qrcode_object.clear();
             qrcode_object.makeCode(JSON.stringify(file_metadata));
+  
             user_message.value = "Starting data transfer in few seconds ...";
             await new Promise((r) => setTimeout(r, 1000));
             for (let i = 0; i < total_chunks; i++) {
-              await new Promise((r) => setTimeout(r, 200));
+              user_message.value = `Transfering Chunk ${
+                i + 1
+              }/${total_chunks} ...`;
+              if (chunks && !chunks.includes(i + 1)) {
+                continue;
+              }
+
+              await new Promise((r) => setTimeout(r, 100));
               let start = i * chunk_size;
               let chunk = data_array.subarray(start, start + chunk_size);
               let encoded_data = encode_data(i, chunk);
               qrcode_object.clear();
               qrcode_object.makeCode(encoded_data);
-              user_message.value = `Transfering Chunk ${i}/${total_chunks} ...`;
               if (!is_transferring.value) {
                 user_message.value = "Choose file to get started";
                 qrcode_object.clear();

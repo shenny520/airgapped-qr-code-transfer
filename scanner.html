@@ -18,6 +18,17 @@
           Progress: {{Object.keys(decoded_chunks).length}} /
           {{file_metadata.chunks || 0}}
         </div>
+        <div class="text-sm mb-4">
+          <ul style="display: flex; flex-wrap: wrap; padding: 0 20px">
+            <li v-for="index in file_metadata.chunks || 5" :key="index">
+              <span
+                style="transition: all 0.5s; padding: 2px"
+                :class="decoded_chunks[index-1] != undefined ? 'bg-green-500' : ''"
+                >{{index}}</span
+              >
+            </li>
+          </ul>
+        </div>
         <button
           v-if="!is_receiving"
           v-on:click="start_receiver"
@@ -32,6 +43,13 @@
         >
           Stop Receiver
         </button>
+        <button
+          v-if="file_metadata.chunks != undefined && is_receiving"
+          v-on:click="copy_chunks"
+          class="mb-6 p-1 border-2 border-gray-500"
+        >
+          Copy Missed Chunks
+        </button>
         <video id="videoElement" muted autoplay playsinline></video>
       </div>
     </div>
@@ -45,7 +63,6 @@
         setup() {
           const user_message = ref("Click receive button to start receiving");
           const decoded_chunks = ref({});
-          const total_chunks = ref(-1);
           const file_metadata = reactive({});
           const is_receiving = ref(false);
           let canvas, context, videoElement;
@@ -78,6 +95,20 @@
             URL.revokeObjectURL(url);
           };
 
+          const copy_chunks = async () => {
+            if (file_metadata.chunks == undefined) {
+              return;
+            }
+            let missed_chunks = [];
+            for (let i = 0; i < file_metadata.chunks; i++) {
+              if (decoded_chunks.value[i] == undefined) {
+                missed_chunks.push(i + 1);
+              }
+            }
+            await navigator.clipboard.writeText(missed_chunks.join(","));
+            user_message.value = "Copy Missed Chunks to Clipboard Successful";
+          };
+
           const stop_receiver = () => {
             is_receiving.value = false;
             decoded_chunks.value = {};
@@ -106,9 +137,15 @@
                 }
                 let decoded_data = symbols[0].decode();
                 if (decoded_data.includes("chunks")) {
-                  Object.assign(file_metadata, JSON.parse(decoded_data));
-                  decoded_chunks.value = {};
-                  user_message.value = `Transferring file: ${file_metadata.name}`;
+                  new_file_metadata = JSON.parse(decoded_data);
+                  if (
+                    file_metadata.chunks != new_file_metadata.chunks ||
+                    file_metadata.name != new_file_metadata.name
+                  ) {
+                    Object.assign(file_metadata, new_file_metadata);
+                    decoded_chunks.value = {};
+                    user_message.value = `Transferring file: ${file_metadata.name}`;
+                  }
                 } else if (decoded_data.split(",").length == 2) {
                   let raw_data = decode_data(decoded_data);
                   decoded_chunks.value[raw_data["index"]] = raw_data["data"];
@@ -125,6 +162,7 @@
               }
             }
             user_message.value = "Data Transfer Complete";
+            await new Promise((r) => setTimeout(r, 1000));
             output_array = [];
             for (let i = 0; i < file_metadata.chunks; i++) {
               output_array = output_array.concat(decoded_chunks.value[i]);
@@ -157,6 +195,7 @@
             file_metadata,
             decoded_chunks,
             stop_receiver,
+            copy_chunks,
           };
         },
       }).mount("#app");

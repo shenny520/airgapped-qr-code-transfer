@@ -1,3 +1,14 @@
+## 使用方法：
+
+1. 使用有摄像头的设备打开 scanner.html, 或者使用 OBS 等虚拟摄像头软件, 确认赋予摄像头权限，点击【Starter Receiver】开始接收
+2. 在发送端打开 generator.html，选择要发送的文件，点击【Start Transfer】开始发送
+3. 检查 chunks 是否完整，如果缺失，点击 scanner.html 的【Copy Missed Chunks】将缺失的 chunks 复制到剪切板, 粘贴 chunks 到 generator.html 的 Chunks 输入框，点击【Start Transfer】继续发送
+
+****
+
+forked from: https://github.com/mohankumarelec/airgapped-qr-code-transfer
+## 原始文档
+
 # Airgapped QR Code Transfer Web App
 
 Airgapped QR Code Transfer is a simple web-based tool to transfer data between devices using QR codes. It allows for the transfer of files without the need for network connectivity, leveraging QR codes to encode and decode file data. This project uses Vue.js for the frontend and libraries like pako for compression, qrcode.js for QR code generation, and zbar-wasm for QR code scanning.
